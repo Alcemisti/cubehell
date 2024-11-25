@@ -44,43 +44,76 @@ function movePlayer() {
 
 function moveEnemies() {
     enemies.forEach(enemy => {
-        enemy.y += enemy.speed;
-        enemy.x += enemy.dx;
-        
-        if (enemy.x <= 0 || enemy.x + enemy.size >= canvas.width) {
-            enemy.dx *= -1;
-        }
-        
-        if (enemy.y > canvas.height) {
-            enemies.splice(enemies.indexOf(enemy), 1);
-            score++;
+        if (enemy.color === "#FFFFFF") {
+            // Valkoinen vihollinen liikkuu vaakasuunnassa
+            enemy.x += enemy.dx;
+
+            // Poistetaan valkoinen vihollinen, kun se menee ulos kanvaksesta
+            if (enemy.x < -enemy.size || enemy.x > canvas.width + enemy.size) {
+                enemies.splice(enemies.indexOf(enemy), 1);
+            }
+        } else {
+            // Muut viholliset liikkuvat pystysuunnassa
+            enemy.y += enemy.speed;
+            enemy.x += enemy.dx;
+
+            // Kimmoke reunoista (vain siniset ja punaiset)
+            if (enemy.x <= 0 || enemy.x + enemy.size >= canvas.width) {
+                enemy.dx *= -1;
+            }
+
+            // Poistetaan vihollinen, kun se poistuu kanvaksen alareunasta
+            if (enemy.y > canvas.height) {
+                enemies.splice(enemies.indexOf(enemy), 1);
+                score++;
+            }
         }
     });
 }
+
 
 function spawnEnemy() {
     let numEnemies = Math.floor(Math.random() * 6) + 1; // number of enemies
     for (let i = 0; i < numEnemies; i++) {
         let x = Math.random() * (canvas.width - 20);
         let dx = (Math.random() - 0.5) * 4; // vaakasuuntainen nopeus
-        let isBlue = Math.random() < 0.5;
+        let isBlue = Math.random() < 0.4; // Siniset ovat harvinaisempia kuin punaiset
+        let isWhite = Math.random() < 0.1; // Valkoiset viholliset ovat hyvin harvinaisia
 
-        // Aseta nopeus eri alueille punaisille ja sinisille
-        let verticalSpeed = isBlue
-            ? Math.floor(Math.random() * 3) + 7 // Sininen: 4–6
-            : Math.floor(Math.random() * 3) + 3; // Punainen: 1–3
+        if (isWhite) {
+            // Valkoisen vihollisen ominaisuudet
+            let startX = Math.random() < 0.5 ? 0 : canvas.width - 20; // Alkaa vasemmalta tai oikealta
+            let horizontalSpeed = Math.random() * 2 + 2; // Vaakasuuntainen nopeus 2–4
+            let direction = startX === 0 ? 1 : -1; // Liikesuunta: oikealle (1) tai vasemmalle (-1)
 
-        let enemy = {
-            x: x,
-            y: 0,
-            size: 20,
-            color: isBlue ? "#0000FF" : "#FF0000",
-            speed: verticalSpeed, // pystysuuntainen nopeus
-            dx: dx
-        };
-        enemies.push(enemy);
+            let whiteEnemy = {
+                x: startX,
+                y: Math.random() * (canvas.height - 20), // Satunnainen korkeus
+                size: 20,
+                color: "#FFFFFF",
+                speed: horizontalSpeed * direction, // Vaakasuuntainen liike
+                dx: horizontalSpeed * direction // Liike nopeus ja suunta
+            };
+            enemies.push(whiteEnemy);
+        } else {
+            // Muut viholliset (siniset ja punaiset)
+            let verticalSpeed = isBlue
+                ? Math.floor(Math.random() * 3) + 7 // Sininen: 7–9
+                : Math.floor(Math.random() * 3) + 3; // Punainen: 3–5
+
+            let enemy = {
+                x: x,
+                y: 0,
+                size: 20,
+                color: isBlue ? "#0000FF" : "#FF0000",
+                speed: verticalSpeed, // pystysuuntainen nopeus
+                dx: dx
+            };
+            enemies.push(enemy);
+        }
     }
 }
+
 
 
 function detectCollision() {
@@ -136,15 +169,15 @@ function endGame() {
 
 // Kuuntele näppäimistöä pelin ohjaamiseen
 document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft") player.dx = -player.speed;
-    if (e.key === "ArrowRight") player.dx = player.speed;
-    if (e.key === "ArrowUp") player.dy = -player.speed;
-    if (e.key === "ArrowDown") player.dy = player.speed;
+    if (e.key === "ArrowLeft" || e.key === "a") player.dx = -player.speed;
+    if (e.key === "ArrowRight" || e.key === "d") player.dx = player.speed;
+    if (e.key === "ArrowUp" || e.key === "w") player.dy = -player.speed;
+    if (e.key === "ArrowDown" || e.key === "s") player.dy = player.speed;
 
-    if (e.key === "a") player.dx = -player.speed;
-    if (e.key === "d") player.dx = player.speed;
-    if (e.key === "w") player.dy = -player.speed;
-    if (e.key === "s") player.dy = player.speed;
+    if (e.key === "Shift") {
+        // Kasvata nopeutta tomii oudosti
+        player.speed *= 2;
+    }
 
     // Tarkista, painaako pelaaja "R"-näppäintä
     if ((e.key === "r" || e.key === "R" || e.key === "Enter") && isGameOver) {
@@ -158,6 +191,10 @@ document.addEventListener("keyup", (e) => {
 
     if (e.key === "a" || e.key === "d") player.dx = 0;
     if (e.key === "w" || e.key === "s") player.dy = 0;
+    if (e.key === "Shift") {
+        // Palauta normaali nopeus tomii oudosti
+        player.speed /= 2;
+    }
 });
 
 // Aloita peli automaattisesti

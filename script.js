@@ -62,19 +62,26 @@ function spawnEnemy() {
     let numEnemies = Math.floor(Math.random() * 6) + 1; // number of enemies
     for (let i = 0; i < numEnemies; i++) {
         let x = Math.random() * (canvas.width - 20);
-        let dx = (Math.random() - 0.5) * 4;
+        let dx = (Math.random() - 0.5) * 4; // vaakasuuntainen nopeus
         let isBlue = Math.random() < 0.5;
+
+        // Aseta nopeus eri alueille punaisille ja sinisille
+        let verticalSpeed = isBlue
+            ? Math.floor(Math.random() * 3) + 7 // Sininen: 4–6
+            : Math.floor(Math.random() * 3) + 3; // Punainen: 1–3
+
         let enemy = {
             x: x,
             y: 0,
             size: 20,
             color: isBlue ? "#0000FF" : "#FF0000",
-            speed: isBlue ? 6 : 3,
+            speed: verticalSpeed, // pystysuuntainen nopeus
             dx: dx
         };
         enemies.push(enemy);
     }
 }
+
 
 function detectCollision() {
     enemies.forEach(enemy => {
@@ -110,7 +117,7 @@ function startGame() {
     resetGameState();
     isGameOver = false;
     gameInterval = setInterval(gameLoop, 1000 / 60);
-    enemyInterval = setInterval(spawnEnemy, 500); // enemy spawn rate
+    enemyInterval = setInterval(spawnEnemy, 500); //enemy spawn rate speed
 }
 
 function resetGameState() {
@@ -124,20 +131,34 @@ function endGame() {
     clearInterval(gameInterval);
     clearInterval(enemyInterval);
     isGameOver = true;
-    alert(`Peli loppu! sun pisteet: ${score}`);
-    startGame();
+    timerElement.textContent = "Game Over! Press R to Restart.";
 }
 
+// Kuuntele näppäimistöä pelin ohjaamiseen
 document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft") player.dx = -player.speed;
     if (e.key === "ArrowRight") player.dx = player.speed;
     if (e.key === "ArrowUp") player.dy = -player.speed;
     if (e.key === "ArrowDown") player.dy = player.speed;
+
+    if (e.key === "a") player.dx = -player.speed;
+    if (e.key === "d") player.dx = player.speed;
+    if (e.key === "w") player.dy = -player.speed;
+    if (e.key === "s") player.dy = player.speed;
+
+    // Tarkista, painaako pelaaja "R"-näppäintä
+    if ((e.key === "r" || e.key === "R" || e.key === "Enter") && isGameOver) {
+        startGame();
+    }
 });
 
 document.addEventListener("keyup", (e) => {
     if (e.key === "ArrowLeft" || e.key === "ArrowRight") player.dx = 0;
     if (e.key === "ArrowUp" || e.key === "ArrowDown") player.dy = 0;
+
+    if (e.key === "a" || e.key === "d") player.dx = 0;
+    if (e.key === "w" || e.key === "s") player.dy = 0;
 });
 
+// Aloita peli automaattisesti
 startGame();

@@ -1,9 +1,27 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const timerElement = document.getElementById("timer");
+const highscoreElement = document.getElementById("highscore")
+const lastscoreElement = document.getElementById("lastscore");
 
 canvas.width = 400;
 canvas.height = 700;
+
+
+function updateHighScore() {
+    if (score > highscore) {
+        highscore = score;
+        localStorage.setItem("highscore", highscore);
+    }
+    highscoreElement.textContent = `Highscore: ${highscore}`;
+}
+
+function updateLastScore() {
+    lastscore = score;
+    localStorage.setItem("lastscore", lastscore); // Vapaaehtoinen tallennus
+    document.getElementById("lastscore").textContent = `Last Score: ${lastscore}`;
+}
+
 
 let player = {
     x: canvas.width / 2,
@@ -16,6 +34,8 @@ let player = {
 
 let enemies = [];
 let score = 0;
+let highscore = 0; //highscore
+let lastscore = 0;
 let gameInterval;
 let enemyInterval;
 let isGameOver = false;
@@ -158,12 +178,16 @@ function resetGameState() {
     player.y = canvas.height - 30;
     enemies = [];
     score = 0;
+    highscore = localStorage.getItem("highscore") || 0;
+    highscoreElement.textContent = `Highscore: ${highscore}`;
 }
 
 function endGame() {
     clearInterval(gameInterval);
     clearInterval(enemyInterval);
     isGameOver = true;
+    updateHighScore();
+    updateLastScore();
     timerElement.textContent = "Game Over! Press R to Restart.";
 }
 

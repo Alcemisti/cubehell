@@ -24,11 +24,15 @@ body, html {
 }
 
 #left-info {
+    margin: 10px;
+    padding: 10rem;
     justify-content: center;
     width: 100rem;
 }
 
 #right-info {
+    margin: 10px;
+    padding: 10rem;
     justify-content: center;
     width: 100rem;
 }
